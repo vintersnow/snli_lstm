@@ -109,7 +109,8 @@ def train(model, vocab, train_loader, val_loader, hps):
 
             assert len(preds) == len(tgts)
             f1 = sklearn.metrics.f1_score(tgts, preds, average='macro')
-            precision = sklearn.metrics.precision_score(tgts, preds, average='macro')
+            precision = sklearn.metrics.precision_score(
+                tgts, preds, average='macro')
             recall = sklearn.metrics.recall_score(tgts, preds, average='macro')
 
             if f1 is None:
@@ -123,3 +124,31 @@ def train(model, vocab, train_loader, val_loader, hps):
 
     if hps.store_summary:
         writer.close()
+
+
+def test(model, vocab, loader, hps):
+    olp = OneLinePrint()
+    model.eval()
+    preds = []
+    tgts = []
+    runner = SentRunner(model, vocab, hps.use_cuda)
+
+    if hps.restore:
+        _, ckpt_name = model.restore(hps.restore)
+        logger.info('Restored from %s' % ckpt_name)
+
+    logger.info('----Start testing: %s----' % model.name)
+    for batch in loader:
+        outputs = runner.run(batch)
+        _, pred = outputs.max(1)
+        pred = pred.cpu().data.tolist()
+        preds.extend(pred)
+        tgts.extend(batch['label'])
+        olp.write('Num: %s' % len(preds)).flush()
+
+    assert len(preds) == len(tgts)
+    f1 = sklearn.metrics.f1_score(tgts, preds, average='macro')
+    precision = sklearn.metrics.precision_score(tgts, preds, average='macro')
+    recall = sklearn.metrics.recall_score(tgts, preds, average='macro')
+
+    logger.info('\nF1: %.3f, P: %.3f, R: %.3f' % (f1, precision, recall))

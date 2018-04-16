@@ -3,16 +3,12 @@ from torch.nn.utils.rnn import pack_padded_sequence
 import torch
 import numpy as np
 
-
-rnn = {
-    'rnn': nn.RNN,
-    'gru': nn.GRU,
-    'lstm': nn.LSTM
-}
+rnn = {'rnn': nn.RNN, 'gru': nn.GRU, 'lstm': nn.LSTM}
 
 
 class SNLIRNN(nn.Module):
     '''直列型モデル'''
+
     def __init__(self, vocab, hps, rnn_type='lstm', acti=nn.LogSoftmax(1)):
         super(SNLIRNN, self).__init__()
         self.vocab = vocab
@@ -26,8 +22,7 @@ class SNLIRNN(nn.Module):
             embd_w = np.load(hps.pre_embd)
             assert vocab.size == embd_w.shape[0]
             assert hps.embd_size == embd_w.shape[1]
-            self.embd.weight.data = torch.from_numpy(
-                embd_w.astype(np.float32))
+            self.embd.weight.data = torch.from_numpy(embd_w.astype(np.float32))
             self.embd.weight.requires_grad = not hps.no_train_embd
 
         self.rnn1 = rnn[rnn_type](

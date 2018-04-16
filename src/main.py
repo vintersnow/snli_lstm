@@ -1,7 +1,7 @@
 from model import SNLIRNN
 from hyperparams import hps
 from os import path
-from task import train
+from task import train, test
 from dataloader import make_dataloader
 from torchutils import Model
 from torchutils.data import Vocab
@@ -12,6 +12,9 @@ def build_loader(vocab, hps):
     if hps.mode == 'train':
         single_pass = False
         bsize = {'train': hps.batch_size, 'val': hps.batch_size}
+    elif hps.mode == 'val':
+        single_pass = True
+        bsize = {'val': hps.batch_size}
     elif hps.mode == 'test':
         single_pass = True
         bsize = {'test': hps.batch_size}
@@ -51,8 +54,10 @@ def main(hps):
 
     if hps.mode == 'train':
         train(model, vocab, loader['train'], loader['val'], hps)
-    # elif hps.mode == 'test':
-    #     decode(model, src_vocab, tgt_vocab, loader['val'], hps)
+    elif hps.mode == 'val':
+        test(model, vocab, loader['val'], hps)
+    elif hps.mode == 'test':
+        test(model, vocab, loader['test'], hps)
     else:
         raise ValueError('Unknown mode: %s', hps.mode)
 

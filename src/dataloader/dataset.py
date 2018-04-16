@@ -16,7 +16,6 @@ class SNLIDataset(Dataset):
             'neutral': 0,
             'entailment': 1,
             'contradiction': 2,
-            # '-': 3
         }
 
     def __len__(self):
@@ -41,16 +40,15 @@ class SNLIDataset(Dataset):
         return sample
 
 
-def make_dataloader(data_file,
-                    batch_size,
-                    vocab,
-                    max_len,
-                    single_pass):
+def make_dataloader(data_file, batch_size, vocab, max_len, single_pass):
 
     transforms = [
         ClipText(max_len, 's1', 's2'),
         Text2Id(vocab, 's1', 's2'),
-        ToTensor({'s1': torch.LongTensor, 's2': torch.LongTensor})
+        ToTensor({
+            's1': torch.LongTensor,
+            's2': torch.LongTensor
+        })
     ]
     dataset = SNLIDataset(data_file, transforms)
 
