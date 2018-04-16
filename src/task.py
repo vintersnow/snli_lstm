@@ -2,7 +2,7 @@ from torch import nn
 from torchutils import get_logger, DEBUG, Runner
 from torchutils.misc import OneLinePrint, Timer
 from torchutils.utils import optimzier
-from dataloader import next_batch
+from dataset import next_batch
 import sklearn.metrics
 
 logger = get_logger(__name__, DEBUG)

@@ -2,7 +2,7 @@ from model import SNLIRNN
 from hyperparams import hps
 from os import path
 from task import train, test
-from dataloader import make_dataloader
+from dataset import make_dataloader
 from torchutils import Model
 from torchutils.data import Vocab
 from torchutils.misc import Timeit

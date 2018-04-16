@@ -1,4 +1,4 @@
-from dataloader import make_dataloader
+from dataset import make_dataloader
 from torchutils.data import Vocab
 
 
