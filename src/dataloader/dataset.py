@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset, DataLoader
 import torch
-from torchutils.data.transformer import Text2Id, ToTensor
+from torchutils.data.transformer import Text2Id, ToTensor, ClipText
 from torchutils.data import merge_fn
 import json
 
@@ -16,7 +16,7 @@ class SNLIDataset(Dataset):
             'neutral': 0,
             'entailment': 1,
             'contradiction': 2,
-            '-': 3
+            # '-': 3
         }
 
     def __len__(self):
@@ -45,14 +45,16 @@ def make_dataloader(data_file,
                     batch_size,
                     vocab,
                     max_len,
-                    single_pass,
-                    val=False):
+                    single_pass):
 
-    transforms = [Text2Id(vocab, 's1', 's2'),
-                  ToTensor({'s1': torch.LongTensor, 's2': torch.LongTensor})]
+    transforms = [
+        ClipText(max_len, 's1', 's2'),
+        Text2Id(vocab, 's1', 's2'),
+        ToTensor({'s1': torch.LongTensor, 's2': torch.LongTensor})
+    ]
     dataset = SNLIDataset(data_file, transforms)
 
-    collate_fn = merge_fn(['s1', 's2'], ['id'], lambda x: x['s1'].size(0))
+    collate_fn = merge_fn(['s1', 's2'], ['id'], lambda x: -x['s1_len'])
     dataloader = DataLoader(
         dataset,
         batch_size=batch_size,

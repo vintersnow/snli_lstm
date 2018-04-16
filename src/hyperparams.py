@@ -10,9 +10,9 @@ parser.add_argument('--vocab_file', type=str, default='data/vocab',
                     help='path to vocabulary file')
 parser.add_argument('--data_path', type=str, default='data/',
                     help='path to data file or directory')
-parser.add_argument('--train_data', type=str, default='conv_train.jsonl', help='')
-parser.add_argument('--val_data', type=str, default='conv_dev.jsonl', help='')
-parser.add_argument('--test_data', type=str, default='conv_test.jsonl', help='')
+parser.add_argument('--train_data', type=str, default='conv2_train.json', help='')
+parser.add_argument('--val_data', type=str, default='conv2_dev.json', help='')
+parser.add_argument('--test_data', type=str, default='conv2_test.json', help='')
 parser.add_argument('--single_pass', action='store_true',
                     help='If the flag is setted, applay example only once')
 
@@ -35,6 +35,8 @@ parser.add_argument('--rnn_type', type=str, default='lstm',
 parser.add_argument('--word_freq', type=int, default=0,
                     help='minmum word frequency')
 parser.add_argument('--bidirectional', action='store_true', help='')
+parser.add_argument('--pre_embd', type=str, default='', help='')
+parser.add_argument('--no_train_embd', action='store_true', help='')
 
 # Training
 parser.add_argument('--num_iters', type=int, default=100,
