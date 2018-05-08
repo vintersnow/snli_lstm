@@ -1,4 +1,4 @@
-from model import SNLIRNN
+from model import SNLIRNN, HypoModel
 from hyperparams import hps
 from os import path
 from task import train, test
@@ -9,13 +9,14 @@ from torchutils.misc import Timeit
 
 
 def build_loader(vocab, hps):
-    if hps.mode == 'train':
+    mode = hps.mode.replace('hypo', '')
+    if mode == 'train':
         single_pass = False
         bsize = {'train': hps.batch_size, 'val': hps.batch_size}
-    elif hps.mode == 'val':
+    elif mode == 'val':
         single_pass = True
         bsize = {'val': hps.batch_size}
-    elif hps.mode == 'test':
+    elif mode == 'test':
         single_pass = True
         bsize = {'test': hps.batch_size}
     else:
@@ -41,7 +42,10 @@ def main(hps):
         loader = build_loader(vocab, hps)
 
     with timer('model', 'building the model... '):
-        rnn = SNLIRNN(vocab, hps, rnn_type=hps.rnn_type)
+        if 'hypo' in hps.mode:
+            rnn = HypoModel(vocab, hps, rnn_type=hps.rnn_type)
+        else:
+            rnn = SNLIRNN(vocab, hps, rnn_type=hps.rnn_type)
 
     if hps.use_cuda:
         with timer('cuda', '└─ copying the model to gpu... '):
@@ -52,11 +56,12 @@ def main(hps):
     if hps.print_model:
         print(rnn)
 
-    if hps.mode == 'train':
+    mode = hps.mode.replace('hypo', '')
+    if mode == 'train':
         train(model, vocab, loader['train'], loader['val'], hps)
-    elif hps.mode == 'val':
+    elif mode == 'val':
         test(model, vocab, loader['val'], hps)
-    elif hps.mode == 'test':
+    elif mode == 'test':
         test(model, vocab, loader['test'], hps)
     else:
         raise ValueError('Unknown mode: %s', hps.mode)

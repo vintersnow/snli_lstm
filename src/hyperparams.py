@@ -80,6 +80,8 @@ parser.add_argument('--mode', type=str, default='train',
                     help='train or decode')
 # parser.add_argument('--setting', type=str, default=None,
 #                     help='setting file (json)')
+parser.add_argument('--save_pred', action='store_true',
+                    help='save model prediction (only use in val and test)')
 
 
 hps = parser.parse_args()

@@ -4,6 +4,7 @@ from torchutils.misc import OneLinePrint, Timer
 from torchutils.utils import optimzier
 from dataset import next_batch
 import sklearn.metrics
+from os import path
 
 logger = get_logger(__name__, DEBUG)
 
@@ -131,6 +132,7 @@ def test(model, vocab, loader, hps):
     model.eval()
     preds = []
     tgts = []
+    ids = []
     runner = SentRunner(model, vocab, hps.use_cuda)
 
     if hps.restore:
@@ -144,9 +146,16 @@ def test(model, vocab, loader, hps):
         pred = pred.cpu().data.tolist()
         preds.extend(pred)
         tgts.extend(batch['label'])
+        ids.extend(batch['id'])
         olp.write('Num: %s' % len(preds)).flush()
 
     assert len(preds) == len(tgts)
+    if hps.save_pred:
+        pred_file = path.join(model.log_dir, 'pred.csv')
+        with open(pred_file, 'w', encoding='utf-8') as f:
+            for i, p, t in zip(ids, preds, tgts):
+                f.write('%s,%s,%s\n' % (i, p, t))
+
     f1 = sklearn.metrics.f1_score(tgts, preds, average='macro')
     precision = sklearn.metrics.precision_score(tgts, preds, average='macro')
     recall = sklearn.metrics.recall_score(tgts, preds, average='macro')

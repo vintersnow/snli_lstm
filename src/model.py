@@ -42,7 +42,6 @@ class SNLIRNN(nn.Module):
             bidirectional=hps.bidirectional)
 
         hsize = hps.hidden_size * (2 if hps.bidirectional else 1)
-        # self.ouput_ly = nn.Linear(hsize, 4)
         self.ouput_ly = nn.Linear(hsize, 3)
         self.activation = acti
 
@@ -57,6 +56,54 @@ class SNLIRNN(nn.Module):
 
         # output (B*L*U)
         output, _ = self.rnn2(embd2, hidden)
+
+        idx = (s2_len - 1).unsqueeze(-1).unsqueeze(-1)
+        idx = idx.expand_as(output)  # (B*L*U)
+        output = torch.gather(output, 1, idx)
+        output = output[:, 0]
+
+        output = self.ouput_ly(output)
+
+        if not self.activation:
+            return output
+        return self.activation(output)
+
+
+class HypoModel(nn.Module):
+    def __init__(self, vocab, hps, rnn_type='lstm', acti=nn.LogSoftmax(1)):
+        super(HypoModel, self).__init__()
+        self.vocab = vocab
+        self.hps = hps
+        self.rnn_type = rnn_type
+
+        self.embd = nn.Embedding(
+            vocab.size, hps.embd_size, padding_idx=vocab.pad_id)
+
+        if hps.pre_embd != '':
+            embd_w = np.load(hps.pre_embd)
+            assert vocab.size == embd_w.shape[0]
+            assert hps.embd_size == embd_w.shape[1]
+            self.embd.weight.data = torch.from_numpy(embd_w.astype(np.float32))
+            self.embd.weight.requires_grad = not hps.no_train_embd
+
+        self.rnn = rnn[rnn_type](
+            hps.embd_size,
+            hps.hidden_size,
+            hps.num_layers,
+            batch_first=True,
+            dropout=hps.dropout,
+            bidirectional=hps.bidirectional)
+
+        hsize = hps.hidden_size * (2 if hps.bidirectional else 1)
+        # self.ouput_ly = nn.Linear(hsize, 4)
+        self.ouput_ly = nn.Linear(hsize, 3)
+        self.activation = acti
+
+    def forward(self, s1, s1_len, s1_mask, s2, s2_len):
+        embd2 = self.embd(s2)
+
+        # output (B*L*U)
+        output, _ = self.rnn(embd2)
 
         idx = (s2_len - 1).unsqueeze(-1).unsqueeze(-1)
         idx = idx.expand_as(output)  # (B*L*U)
