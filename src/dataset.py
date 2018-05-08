@@ -65,7 +65,7 @@ class Guard(object):
         return sample
 
 
-def make_dataloader(data_file, batch_size, vocab, max_len, single_pass):
+def make_dataloader(data_file, batch_size, vocab, max_len, single_pass, cuda):
 
     if unk_hypo:
         unk_file = tempfile.NamedTemporaryFile('w')
@@ -91,6 +91,7 @@ def make_dataloader(data_file, batch_size, vocab, max_len, single_pass):
         batch_size=batch_size,
         shuffle=not single_pass,
         num_workers=0,
+        pin_memory=cuda,
         collate_fn=collate_fn)
 
     return dataloader

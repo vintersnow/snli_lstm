@@ -17,5 +17,6 @@ python src/main.py \
   --init_lr 0.001 \
   --embd_size 300 \
   --hidden_size 256 \
-  --model_name snli_fool_adam001_ly1e300h256b64d0 \
+  --pre_embd vector.npy \
+  --model_name snli_adam001_ly1e300h512b64d0_embd \
   $*

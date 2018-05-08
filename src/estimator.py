@@ -26,12 +26,13 @@ class RNNEstimator(BaseEstimator):
         x (list(sample(dict)))
             sample (dict): keys are 's1', 's2', 'label'
         '''
-        dataloader = make_dataloader(x, 64, self.vocab, self.max_len, False)
+        dataloader = make_dataloader(x, 64, self.vocab, self.max_len, False,
+                                     self.use_cuda)
         preds = []
         for batch in dataloader:
             keys = ('s1', 's1_len', 's1_mask', 's2', 's2_len')
-            outputs = self.model(*get_vars(
-                batch, *keys, use_cuda=self.use_cuda))  # (B*3)
+            outputs = self.model(
+                *get_vars(batch, *keys, use_cuda=self.use_cuda))  # (B*3)
             if self.activate:
                 outputs = F.softmax(outputs, 1)
             else:
@@ -115,3 +116,4 @@ if __name__ == '__main__':
     raw_data = pre.make_raw_text(data[0])
     # print(raw_data)
     print(pipe.predict_proba([raw_data]))
+

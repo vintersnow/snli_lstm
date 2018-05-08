@@ -10,12 +10,11 @@ logger = get_logger(__name__, DEBUG)
 
 
 class SentRunner(Runner):
-    def __init__(self, model, vocab, use_cuda):
+    def __init__(self, model, vocab):
         criterion = nn.NLLLoss()
         self.model = model
         self.vocab_size = vocab.size
-        self.use_cuda = use_cuda
-        super(SentRunner, self).__init__(criterion)
+        super(SentRunner, self).__init__(criterion, model.device)
 
     def run(self, batch):
         keys = ('s1', 's1_len', 's1_mask', 's2', 's2_len')
@@ -49,7 +48,7 @@ def train(model, vocab, train_loader, val_loader, hps):
     else:
         init_step = hps.start_step
 
-    runner = SentRunner(model, vocab, hps.use_cuda)
+    runner = SentRunner(model, vocab)
 
     # for store summary
     if hps.store_summary:
@@ -68,15 +67,15 @@ def train(model, vocab, train_loader, val_loader, hps):
         loss, _, _ = runner.step(batch)
         loss.backward()
 
-        global_norm = nn.utils.clip_grad_norm(model_params, hps.clip)
+        global_norm = nn.utils.clip_grad_norm_(model_params, hps.clip)
         model.opt.step()
-        loss_sum += loss.data[0]
+        loss_sum += loss.item()
 
-        olp.write('step %s train loss: %f' % (step, loss.data[0]))
+        olp.write('step %s train loss: %f' % (step, loss.item()))
 
         # save checkpoint
         if step % hps.ckpt_steps == 0:
-            model.save(step, loss.data[0])
+            model.save(step, loss.item())
             olp.write('save checkpoint (step=%d)\n' % step)
         olp.flush()
 
@@ -161,3 +160,4 @@ def test(model, vocab, loader, hps):
     recall = sklearn.metrics.recall_score(tgts, preds, average='macro')
 
     logger.info('\nF1: %.3f, P: %.3f, R: %.3f' % (f1, precision, recall))
+

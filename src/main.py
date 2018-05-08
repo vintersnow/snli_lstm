@@ -1,3 +1,4 @@
+import torch
 from model import SNLIRNN, HypoModel
 from hyperparams import hps
 from os import path
@@ -23,7 +24,7 @@ def build_loader(vocab, hps):
         raise ValueError('Unknown mode: %s' % hps.mode)
 
     loader = {}
-    args = (vocab, hps.max_steps, single_pass)
+    args = (vocab, hps.max_steps, single_pass, hps.use_cuda)
     for key in bsize:
         dpath = path.join(hps.data_path, getattr(hps, key + '_data'))
         loader[key] = make_dataloader(dpath, bsize[key], *args)
@@ -48,8 +49,12 @@ def main(hps):
             rnn = SNLIRNN(vocab, hps, rnn_type=hps.rnn_type)
 
     if hps.use_cuda:
-        with timer('cuda', '└─ copying the model to gpu... '):
-            rnn = rnn.cuda()
+        device = torch.device('cuda:0')
+    else:
+        device = torch.device('cpu')
+
+    with timer('cuda', '└─ copying the model to memory... '):
+        rnn = rnn.to(device)
 
     model = Model(rnn, hps.model_name, hps.log_dir, hps=hps)
 
