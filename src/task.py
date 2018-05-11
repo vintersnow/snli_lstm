@@ -160,4 +160,3 @@ def test(model, vocab, loader, hps):
     recall = sklearn.metrics.recall_score(tgts, preds, average='macro')
 
     logger.info('\nF1: %.3f, P: %.3f, R: %.3f' % (f1, precision, recall))
-
